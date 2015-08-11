@@ -2,7 +2,7 @@
 
 /**
 * writes rss to local file with some parsing
-* @param url $url - what url to get
+* @param String $url - what xml to parse
 * @param String $result_file - where to write result
 * @param String $keep_pattern - what pattern to keep "keeme|keepalsome"
 * @param String $remove_pattern - what pattern to remove "removeme|removealsome"
@@ -10,10 +10,10 @@
 * @param array $remove_fields - what fields to match the remove_pattern - array("title", "decription")
 * @param boolean $remove_default - if remove is the default action
 */
-function writeRss($url, $result_file, $keep_pattern, $remove_pattern, $keep_fields = array("title"), $remove_fields = array("title"), $remove_default = true, $debug = false) {
+function writeRss($xml, $result_file, $keep_pattern, $remove_pattern, $keep_fields = array("title"), $remove_fields = array("title"), $remove_default = true, $debug = false) {
 
   // load file
-  $xml = simplexml_load_file($url);
+  $xml = simplexml_load_string($xml);
   for($i = 0; $i < count($xml->channel->item); $i++){
     // pick item
     $item = $xml->channel->item[$i];
@@ -53,12 +53,33 @@ function writeRss($url, $result_file, $keep_pattern, $remove_pattern, $keep_fiel
   file_put_contents($result_file, $xml->asXML());
 }
 
+/**
+* helper to fetch remote file
+* @param String $url - url to fetch
+*/
+function curlFetch($url) {
+  $curl = curl_init($url);
+  curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+  // 5 second timeout
+  curl_setopt($curl, CURLOPT_TIMEOUT, 5);
+  curl_setopt($curl, CURLOPT_CONNECTTIMEOUT ,5);
+  // on SSL connection do not verify
+  curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
+  curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
+  $data = curl_exec($curl);
+  // close
+  curl_close($curl);
+  return $data;
+}
+
 // examples
+
+
 // just get all and write temp.xml
-writeRss("http://www.hs.fi/uutiset/rss/", "temp.xml", "", "", array(), array(), false, true);
+writeRss(curlFetch("http://www.hs.fi/uutiset/rss/"), "temp.xml", "", "", array(), array(), false, true);
 
 // remove Talous and Ulkomaat
-writeRss("temp.xml", "temp_catsremoved.xml", "", "Talous|Ulkomaat", array(), array("category"), false, true);
+writeRss(file_get_contents("temp.xml"), "temp_catsremoved.xml", "", "Talous|Ulkomaat", array(), array("category"), false, true);
 
 // leave only stuff with am or pm pattern remove rest
-writeRss("temp_catsremoved.xml", "temp_onlyos.xml", "am|pm", "", array("title", "description", "nonexistingfield"), array(), true, true);
+writeRss(file_get_contents("temp_catsremoved.xml"), "temp_onlyos.xml", "am|pm", "", array("title", "description", "nonexistingfield"), array(), true, true);
