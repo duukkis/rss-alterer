@@ -22,14 +22,25 @@ function writeRss($xml, $result_file, $keep_pattern, $remove_pattern, $keep_fiel
     $keep_match = "";
     $remove_match = "";
     
+    //get namespace so we can parse for example dc:creator tags
+    $namespaces = $item->getNameSpaces(true);
+    
     foreach($keep_fields AS $field) {
-      if(isset($item->$field)){
+      $field_explode = explode(":", $field);
+      if(count($field_explode) > 1){
+        $ns = $item->children($namespaces[$field_explode[0]]);
+        $keep_match .= " ".$ns->$field_explode[1];
+      } else if(isset($item->$field)){
         $keep_match .= " ".$item->$field;
       }
     }
 
     foreach($remove_fields AS $field) {
-      if(isset($item->$field)){
+      $field_explode = explode(":", $field);
+      if(count($field_explode) > 1){
+        $ns = $item->children($namespaces[$field_explode[0]]);
+        $remove_match .= " ".$ns->$field_explode[1];
+      } else if(isset($item->$field)){
         $remove_match .= " ".$item->$field;
       }
     }
@@ -71,7 +82,4 @@ function curlFetch($url) {
   curl_close($curl);
   return $data;
 }
-
-// load config from external file
-// examples can be found in sites.template (which you can rename)
 
