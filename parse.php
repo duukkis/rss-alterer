@@ -12,8 +12,14 @@
 */
 function writeRss($xml, $result_file, $keep_pattern, $remove_pattern, $keep_fields = array("title"), $remove_fields = array("title"), $remove_default = true, $debug = false) {
 
+    
   // load file
   $xml = simplexml_load_string($xml);
+  if($debug) { 
+      $debugfeed = $xml->channel->title;
+      print "<h1>FEED:".$debugfeed."</h1><br />\n"; 
+  }
+       
   for($i = 0; $i < count($xml->channel->item); $i++){
     // pick item
     $item = $xml->channel->item[$i];
@@ -70,6 +76,7 @@ function writeRss($xml, $result_file, $keep_pattern, $remove_pattern, $keep_fiel
 */
 function curlFetch($url) {
   $curl = curl_init($url);
+  curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
   curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
   // 5 second timeout
   curl_setopt($curl, CURLOPT_TIMEOUT, 5);
@@ -83,3 +90,4 @@ function curlFetch($url) {
   return $data;
 }
 
+				    
