@@ -12,8 +12,14 @@
 */
 function writeRss($xml, $result_file, $keep_pattern, $remove_pattern, $keep_fields = array("title"), $remove_fields = array("title"), $remove_default = true, $debug = false) {
 
+    
   // load file
   $xml = simplexml_load_string($xml);
+  if($debug) { 
+      $debugfeed = $xml->channel->title;
+      print "<h1>FEED:".$debugfeed."</h1><br />\n"; 
+  }
+       
   for($i = 0; $i < count($xml->channel->item); $i++){
     // pick item
     $item = $xml->channel->item[$i];
@@ -46,18 +52,18 @@ function writeRss($xml, $result_file, $keep_pattern, $remove_pattern, $keep_fiel
     }
     // keep these 
     if(!empty($keep_pattern) && !empty($keep_match) && preg_match('/('.$keep_pattern.')/i', $keep_match) > 0) {
-      if($debug) { print "KEEP:".$keep_match."\n"; }
+      if($debug) { print "<strong>KEEP:".$keep_match."</strong><br />\n"; }
     } else if(!empty($remove_pattern) && !empty($remove_match) && preg_match('/('.$remove_pattern.')/i', $remove_match) > 0){
     // remove these
-      if($debug) { print "REMOVE:".$remove_match."\n"; }
+      if($debug) { print "REMOVE:".$remove_match."<br />\n"; }
       unset($xml->channel->item[$i]);
       $i--; // move the counter as the items are decreased
     } else if($remove_default){ // default action
-      if($debug) { print "DEFAULT REMOVE:".$item->title."\n"; }
+      if($debug) { print "DEFAULT REMOVE:".$item->title."<br />\n"; }
       unset($xml->channel->item[$i]);
       $i--;
     } else { // default keep
-      if($debug) { print "DEFAULT KEEP:".$item->title."\n"; }
+      if($debug) { print "DEFAULT KEEP:".$item->title."<br />\n"; }
     }
   }
 
@@ -70,6 +76,7 @@ function writeRss($xml, $result_file, $keep_pattern, $remove_pattern, $keep_fiel
 */
 function curlFetch($url) {
   $curl = curl_init($url);
+  curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
   curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
   // 5 second timeout
   curl_setopt($curl, CURLOPT_TIMEOUT, 5);
@@ -83,4 +90,4 @@ function curlFetch($url) {
   return $data;
 }
 
-
+				    
