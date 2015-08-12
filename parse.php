@@ -75,4 +75,3 @@ function curlFetch($url) {
 // load config from external file
 // examples can be found in sites.template (which you can rename)
 
-require(sites.php)
